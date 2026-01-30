@@ -42,8 +42,12 @@ RUN php artisan config:cache && php artisan route:cache
 # Fix permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Stage 3: Nginx sebagai web server
-FROM nginx:stable
+# Stage 3: Final image with php-fpm + nginx
+FROM php:8.4-fpm AS final
+
+# Install nginx
+RUN apt-get update && apt-get install -y nginx \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy konfigurasi Nginx
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
@@ -53,7 +57,12 @@ WORKDIR /var/www/html
 # Copy project dari php_stage
 COPY --from=php_stage /var/www/html .
 
-# Expose port (Railway akan inject PORT)
+# Add entrypoint to start php-fpm then nginx
+COPY docker/docker-entrypoint-nginx.sh /usr/local/bin/docker-entrypoint-nginx.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint-nginx.sh
+
+# Expose port (Railway will inject PORT)
 EXPOSE 8080
 
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint-nginx.sh"]
 CMD ["nginx", "-g", "daemon off;"]
