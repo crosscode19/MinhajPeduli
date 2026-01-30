@@ -41,7 +41,9 @@ RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Stage 3: Final image with php-fpm + nginx
-FROM php:8.4-fpm AS final
+# Use `php_stage` as the base so installed PHP extensions and Composer
+# artifacts are preserved into the final runtime image.
+FROM php_stage AS final
 
 # Install nginx
 RUN apt-get update && apt-get install -y nginx \
