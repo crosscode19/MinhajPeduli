@@ -1,24 +1,22 @@
-# Stage 1: Build assets dengan Node
+# Stage 1: Build frontend assets dengan Node
 FROM node:20 AS node_builder
 WORKDIR /app
 
-# Copy file yang diperlukan untuk npm
 COPY package.json package-lock.json ./
 RUN npm install
 
-# Copy seluruh project dan build
 COPY . .
 RUN npm run build
 
-# Stage 2: PHP + Composer
-FROM php:8.4-cli
+# Stage 2: PHP-FPM untuk Laravel
+FROM php:8.4-fpm AS php_stage
 
-WORKDIR /app
+WORKDIR /var/www/html
 
 # Install dependencies sistem
 RUN apt-get update && apt-get install -y \
-    unzip git libzip-dev \
-    && docker-php-ext-install zip pdo pdo_mysql
+    unzip git libzip-dev libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install zip pdo pdo_mysql mbstring gd
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -26,20 +24,33 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Copy project
 COPY . .
 
-# Copy hasil build dari stage Node ke public/build
+# Copy hasil build dari Node ke public/build
 COPY --from=node_builder /app/public/build ./public/build
 
 # Install PHP dependencies
-RUN composer install --optimize-autoloader --no-interaction --no-scripts
+RUN composer install --optimize-autoloader --no-interaction --no-dev
 
-# Generate app key (fallback)
-RUN php artisan key:generate || true
+# Pastikan APP_KEY ada
+RUN grep -q "APP_KEY=" .env || php artisan key:generate
+
+# Cache config & route
+RUN php artisan config:cache && php artisan route:cache
 
 # Fix permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache || true
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Expose port
+# Stage 3: Nginx sebagai web server
+FROM nginx:stable
+
+# Copy konfigurasi Nginx
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+WORKDIR /var/www/html
+
+# Copy project dari php_stage
+COPY --from=php_stage /var/www/html .
+
+# Expose port (Railway akan inject PORT)
 EXPOSE 8080
 
-# Jalankan Laravel
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+CMD ["nginx", "-g", "daemon off;"]
