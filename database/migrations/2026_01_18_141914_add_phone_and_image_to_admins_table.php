@@ -1,0 +1,24 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('admins', function (Blueprint $table) {
+            // Menambahkan kolom phone dan image setelah kolom email
+            $table->string('phone')->nullable()->after('email');
+            $table->string('image')->nullable()->after('phone');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('admins', function (Blueprint $table) {
+            $table->dropColumn(['phone', 'image']);
+        });
+    }
+};

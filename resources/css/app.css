@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Minhaj custom green utilities */
+:root{
+	--minhaj-green: #29B147;
+}
+
+/* Primary */
+.bg-minhaj{background-color:var(--minhaj-green)!important}
+.text-minhaj{color:var(--minhaj-green)!important}
+.border-minhaj{border-color:var(--minhaj-green)!important}
+
+/* Light variants (approx) */
+.bg-minhaj-50{background-color:rgba(41,177,71,0.08)!important}
+.bg-minhaj-100{background-color:rgba(41,177,71,0.12)!important}
+.text-minhaj-800{color:rgba(10,40,20,0.9)!important}
+
+/* Selection color */
+::selection{background:var(--minhaj-green);color:white}
+
+/* Call-to-action (light) */
+:root{
+	--minhaj-cta: #BCF6C3;
+}
+.bg-minhaj-cta{background-color:var(--minhaj-cta)!important}
+.bg-minhaj-cta:hover{filter:brightness(.95)}
+.text-minhaj-cta{color:var(--minhaj-green)!important}
