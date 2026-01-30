@@ -23,9 +23,6 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache || true
 # Expose port used by Railway
 EXPOSE 8080
 
-# Copy entrypoint to clear cached config at runtime (so runtime env vars are used)
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
