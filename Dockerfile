@@ -54,4 +54,3 @@ COPY --from=php_stage /var/www/html .
 EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
-6777777777777y89
