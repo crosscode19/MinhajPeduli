@@ -33,8 +33,9 @@ RUN composer install --optimize-autoloader --no-interaction --no-dev
 # Ensure an .env exists for build-time tasks (do not overwrite if provided)
 RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
 
-# Cache config & route
-RUN php artisan config:cache && php artisan route:cache
+# NOTE: Do NOT cache config at build-time here so runtime environment variables
+# (like Railway's APP_KEY) are respected. We'll clear any cached config at container
+# startup in the entrypoint instead.
 
 # Fix permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
