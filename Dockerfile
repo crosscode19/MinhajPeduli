@@ -30,8 +30,11 @@ COPY --from=node_builder /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --optimize-autoloader --no-interaction --no-dev
 
-# Pastikan APP_KEY ada
-RUN grep -q "APP_KEY=" .env || php artisan key:generate
+# Ensure an .env exists for build-time tasks (do not overwrite if provided)
+RUN if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
+
+# Pastikan APP_KEY ada (safe - will write to .env if missing)
+RUN grep -q "APP_KEY=" .env || php artisan key:generate --force || true
 
 # Cache config & route
 RUN php artisan config:cache && php artisan route:cache
