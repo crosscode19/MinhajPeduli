@@ -14,6 +14,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Install project dependencies
 RUN composer install --optimize-autoloader --no-interaction --no-scripts
 
+# Copy environment file
+RUN cp .env.example .env
+
 # Generate application key
 RUN php artisan key:generate
 
